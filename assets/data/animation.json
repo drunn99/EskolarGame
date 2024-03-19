@@ -1,0 +1,38 @@
+[
+    {
+        "key": "PLAYER_DOWN",
+            "frames": [18,19,20,21,22,23],
+            "frameRate": 12,
+            "repeat": -1,
+            "delay": 0,
+            "yoyo": true,
+            "assetKey" : "PLAYER"
+    },
+    {
+        "key": "PLAYER_RIGHT",
+            "frames": [24,25,26,27,28,29],
+            "frameRate": 12,
+            "repeat": -1,
+            "delay": 0,
+            "yoyo": true,
+            "assetKey" : "PLAYER"
+    },
+    {
+        "key": "PLAYER_LEFT",
+            "frames": [24,25,26,27,28,29],
+            "frameRate": 12,
+            "repeat": -1,
+            "delay": 0,
+            "yoyo": true,
+            "assetKey" : "PLAYER_INV"
+    },
+    {
+        "key": "PLAYER_UP",
+            "frames": [30,31,32,33,34,35],
+            "frameRate": 12,
+            "repeat": -1,
+            "delay": 0,
+            "yoyo": true,
+            "assetKey" : "PLAYER"
+    }
+]

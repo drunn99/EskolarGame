@@ -1,20 +1,30 @@
 import {
     BATTLE_ASSET_KEYS,
-    BATTLE_BACKGROUND_ASSET_KEYS,
-    HEALTH_BACKGROUND_ASSET_KEYS,
+    BATTLE_UI_SOUND,
     MONSTER_ASSET_KEYS,
     PLAYER_ASSET_KEYS
 } from "../assetsKeys/asset-keys.js";
+import { Background } from "../battle/background.js";
+import { BattleChar } from "../battle/battleChars/battle-Chars.js";
+import { EnemyBattleChar } from "../battle/battleChars/enemy-battle-chars.js";
+import { PlayerBattleChar } from "../battle/battleChars/player-battle-char.js";
+import { HealthBar } from "../battle/ui/health-bar.js";
 import { BattleMenu } from "../battle/ui/menu/battle-menu.js";
 import { DIRECTION } from "../common/direction.js";
 import Phaser from "../lib/phaser.js";
+import { Controls } from "../utils/controls.js";
 import { SCENE_KEYS } from "./scene-keys.js";
 
 export class BattleScene extends Phaser.Scene {
     /**@type {BattleMenu} */
-    #battleMenu
-    /**@type {Phaser.Types.Input.Keyboard.CursorKeys} */
-    #cursorKeys
+    #battleMenu;
+    /**@type {Controls} */
+    #controls;
+    /**@type {EnemyBattleChar} */
+    #activeEnemy;
+    /**@type {PlayerBattleChar} */
+    #activePlayer;
+
     constructor() {
         super({
             key: SCENE_KEYS.BATTLE_SCENE,
@@ -22,87 +32,105 @@ export class BattleScene extends Phaser.Scene {
     }
 
     preload() {
-
+        //Audio
+        this.load.audio(BATTLE_UI_SOUND.CURSOR, "assets/kennys/kenney_ui-pack/Bonus/click1.ogg");
+        this.load.audio(BATTLE_UI_SOUND.BG_MUSIC, "assets/audio/OST/battle.mp3");
     }
 
     create() {
         console.log(`${BattleScene.name}:create] invoked`);
         //Background de batalla AÑADIR LO PRIMERO QUE VA POR CAPA (PRIMERO QUE SE CREA SE VA AL FONDO) o usar .SetDepth()
-        this.add.image(this.scale.width / 2, this.scale.height / 2, BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setScale(2.25).setAlpha(0.8);
+        const background = new Background(this);
+        background.showRandomBG();
 
-        this.#battleMenu = new BattleMenu(this);
-        this.#battleMenu.showMainBattleMenu();
+        //Musica de batalla
+        this.bg_music = this.sound.add(BATTLE_UI_SOUND.BG_MUSIC);
+        this.bg_music.play({
+            loop: true,
+            volume: 0.3,
+        })
 
         //Jugador y Enemigo
-        this.add.image(1000, 560, MONSTER_ASSET_KEYS.SLIME, 0).setScale(10).setFlipX(true);
-        this.add.image(240, 490, PLAYER_ASSET_KEYS.DEFAULT_PLAYER, 0).setScale(8);
+        this.#activePlayer = new PlayerBattleChar({
+            scene: this,
+            characterDetails: {
+                name: PLAYER_ASSET_KEYS.DEFAULT_PLAYER_NAME,
+                assetKey: PLAYER_ASSET_KEYS.DEFAULT_PLAYER,
+                level: 5,
+                assetFrame: 0,
+                currentHp: 100,
+                maxHp: 100,
+                attackOptions: [1, 2],
+                baseAttack: 20,
+            }
+        })
+
+        this.#activeEnemy = new EnemyBattleChar({
+            scene: this,
+            characterDetails: {
+                name: MONSTER_ASSET_KEYS.SLIME,
+                assetKey: MONSTER_ASSET_KEYS.SLIME,
+                assetFrame: 0,
+                level: 5,
+                currentHp: 100,
+                maxHp: 100,
+                attackOptions: [3],
+                baseAttack: 5,
+            }
+        });
+
+        //Menu de batalla
+        this.#battleMenu = new BattleMenu(this, this.#activePlayer);
+        this.#battleMenu.showMainBattleMenu();
+        //this.add.image(1000, 560, MONSTER_ASSET_KEYS.SLIME, 0).setScale(10).setFlipX(true);
+        //this.add.image(240, 490, PLAYER_ASSET_KEYS.DEFAULT_PLAYER, 0).setScale(8);
 
         //Contenedor de la barra de vida del jugador
-        const player = this.add.text(10, 10, PLAYER_ASSET_KEYS.DEFAULT_PLAYER_NAME, { color: '#f0f011', fontSize: '24px', fontStyle: 'bold', fontFamily: "sans-serif" });
-        this.add.container(120, 300,
-            [ //Array de objetos a incluir en el contenedor
-                this.add.image(0, 0, BATTLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(0.5, 0.8),
-                player,
-                this.add.text(15, 47, "HP", { color: "red", fontSize: "24px", fontStyle: "italic", fontFamily: "sans-serif" }),
-                this.add.text(160, 10, "LVL5", { color: 'lime', fontSize: '24px', fontFamily: "sans-serif" }),
-                this.add.text(210, 70, "100 / 100", { color: '#7E3D3F', fontSize: '16px', fontFamily: "sans-serif", fontStyle: 'bold' }).setOrigin(1, 0),
-                this.#createHealthBar(25, 30)
-            ]);
 
-
-        //Contenedor de la barra de vida del enemigo
-        const enemy = this.add.text(10, 10, MONSTER_ASSET_KEYS.SLIME, { color: '#f0f011', fontSize: '24px', fontStyle: 'bold', fontFamily: "sans-serif" });
-        this.add.container(880, 300,
-            [ //Array de objetos a incluir en el contenedor
-                this.add.image(0, 0, BATTLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(0.5, 0.8),
-                enemy,
-                this.add.text(15, 47, "HP", { color: "red", fontSize: "24px", fontStyle: "italic", fontFamily: "sans-serif" }),
-                this.#createHealthBar(25, 30)
-            ]);
         //Cursores 
-        this.#cursorKeys = this.input.keyboard.createCursorKeys();
+        this.#controls = new Controls(this);
+        /*
+        playerHealthBar.setMeterPercentageAnimated(0.5, { duration: 3000, callback: () => console.log("animationCompleted") });
+        this.#activeEnemy.takeDmg(0);
+        */
+
     }
     update() {
-        const wasSpacePressed = Phaser.Input.Keyboard.JustDown(this.#cursorKeys.space);
-        const wasShiftPressed = Phaser.Input.Keyboard.JustDown(this.#cursorKeys.shift);
+        const wasSpacePressed = this.#controls.wasSpaceKeyPressed();
+        const wasShiftPressed = this.#controls.wasBackKeyPressed();
+
         if (wasSpacePressed) {
             this.#battleMenu.handlePlayerInput('OK');
-            return;
+            //Comprobar si se ha seleccionado LUCHAR -> ATACAR
+            if (this.#battleMenu.selectedAttack === undefined) {
+                return;
+            } else {
+                this.#battleMenu.hideFightMenu();
+                /*
+                this.#handleBattleSequence();
+                */
+            }
         }
 
         if (wasShiftPressed) {
             this.#battleMenu.handlePlayerInput('CANCEL');
             return;
         }
-        /**@type {import("../common/direction.js").Direction}*/
-        let selectedDirection = DIRECTION.NONE;
-        if (this.#cursorKeys.left.isDown) {
-            selectedDirection = DIRECTION.LEFT;
-        } else if (this.#cursorKeys.down.isDown) {
-            selectedDirection = DIRECTION.DOWN;
-        } else if (this.#cursorKeys.right.isDown) {
-            selectedDirection = DIRECTION.RIGHT;
-        } else if (this.#cursorKeys.up.isDown) {
-            selectedDirection = DIRECTION.UP;
-        }
-
+        const selectedDirection = this.#controls.getDirectionKeyPressedOnce();
         if (selectedDirection !== DIRECTION.NONE) {
             this.#battleMenu.handlePlayerInput(selectedDirection);
         }
     }
 
-    /**
-     * 
-     * @param {number} x Posición X de la barra de vida
-     * @param {number} y Posición Y  de la barra de vida
-     * @returns 
-     */
-    #createHealthBar(x, y) {
-        const leftCap = this.add.image(x, y, HEALTH_BACKGROUND_ASSET_KEYS.LEFT_CAP).setOrigin(0, 0.5).setScale(1, 0.8);
-        const midCap = this.add.image(leftCap.x + leftCap.width, y, HEALTH_BACKGROUND_ASSET_KEYS.MIDDLE_CAP).setOrigin(0, 0.5).setScale(1, 0.8);
-        midCap.displayWidth = 150;
-        const rightCap = this.add.image(midCap.x + midCap.displayWidth, y, HEALTH_BACKGROUND_ASSET_KEYS.RIGHT_CAP).setOrigin(0, 0.5).setScale(1, 0.8);
-        return this.add.container(x, y, [leftCap, midCap, rightCap]);
+    #handleBattleSequence() {
+        /*Secuencia de combate general jugador selecciona ataque - pregunta
+        - enemigo -> pausa - animación de daño -> pausa - actualizar vida - pasar al otro personaje
+        */
+        this.#playerAttack();
+    }
+
+    #playerAttack() {
+        this.#battleMenu.updateInfoPaneMessagesAndWaitInput([])
     }
 
 }

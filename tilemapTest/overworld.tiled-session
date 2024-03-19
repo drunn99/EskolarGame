@@ -1,0 +1,77 @@
+{
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "E:/Repos/EskolarGame/tiled_map/project/Area1.tsx": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx": {
+            "expandedGroupLayers": [
+                15,
+                7,
+                28,
+                12,
+                27
+            ],
+            "scale": 3,
+            "selectedLayer": 16,
+            "viewCenter": {
+                "x": 535.1666666666666,
+                "y": 230.83333333333331
+            }
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#DEMO houses": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#Knights": {
+            "scaleInDock": 1.5
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#blue_button12": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#chest_02": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#decor_16x16": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#fences": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#objects": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#plains": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#red_button09": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#walls": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#water1": {
+            "scaleInDock": 1
+        },
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx#yellow_button08": {
+            "scaleInDock": 1
+        }
+    },
+    "last.exportedFilePath": "E:/Repos/EskolarGame/tiled_map/maps",
+    "last.imagePath": "E:/Repos/EskolarGame/assets/kennys/kenney_ui-pack/PNG",
+    "last.objectTypesPath": "E:/Repos/EskolarGame/tiled_map/custom_types.json",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "openFiles": [
+    ],
+    "project": "overworld.tiled-project",
+    "recentFiles": [
+        "E:/Repos/EskolarGame/tiled_map/project/map1.tmx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

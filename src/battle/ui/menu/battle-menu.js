@@ -4,6 +4,7 @@ import { DIRECTION } from "../../../common/direction.js";
 import { exhaustiveGuard } from "../../../utils/guard.js";
 import { BATTLE_MENU_OPTIONS, ATTACK_MENU_OPTIONS, ACTIVE_BATTLE_MENU } from "./battle-menu-options.js";
 import { BATTLE_UI_TEXT_STYLE } from "./battle-menu-config.js";
+import { BattleChar } from "../../battleChars/battle-Chars.js";
 
 const BATTLE_MENU_CURSOR_POS = Object.freeze({
     x: 75,
@@ -23,33 +24,74 @@ export class BattleMenu {
     #mainBattleMenuContainer;
     /**@type {Phaser.GameObjects.Container} */
     #moveSelectionSubContainer;
+    /**@type {Phaser.GameObjects.Container} */
+    #questionContainer;
     /**@type {Phaser.GameObjects.Text} */
     #battleTextLine1;
     /**@type {Phaser.GameObjects.Image} */
     #mainBattleMenuCursor;
     /**@type {Phaser.GameObjects.Image} */
     #attackBattleMenuCursor;
+    /**@type {Phaser.GameObjects.Image} */
+    #questionMenuCursor;
     /**@type {import("./battle-menu-options.js").BattleMenuOptions} */
     #selectedBattleMenuOption;
     /**@type {import("./battle-menu-options.js").AttackMenuOptions} */
     #selectedAttackMenuOption;
+    /**@type {Object} */
+    #battleQuestion
     /**@type {Phaser.Sound.BaseSound} */
     #moveCursorAudio
     /**@type {import("./battle-menu-options.js").ActiveBattleMenu} */
     #activeBattleMenu
+    /**@type {String[]}*/
+    #queuedInfoPanelMessages;
+    /**@type {() => void |undefined}*/
+    #queuedInfoPanelCallback;
+    /**@type {Boolean}*/
+    #waitingForPlayerInput;
+    /**@type {Number | undefined} */
+    #selectedAttackIndex
+    /**@type {BattleChar}*/
+    #activePlayer;
 
     /**
      * 
      * @param {Phaser.Scene} scene La escena de phaser3 que se añadirá al menú de batalla
+     * @param {BattleChar} activePlayer
      */
-    constructor(scene) {
+    constructor(scene, activePlayer) {
         this.#scene = scene;
+        this.#activePlayer = activePlayer;
         this.#selectedBattleMenuOption = BATTLE_MENU_OPTIONS.LUCHAR;
         this.#selectedAttackMenuOption = ATTACK_MENU_OPTIONS.ATACAR;
         this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
+        this.#battleQuestion = {
+            questionHeader: '',
+            questionAnswer: '',
+            questionOptions: {
+                questionOption_A: 'eo',
+                questionOption_B: 'ea',
+                questionOption_C: 'ebe',
+                questionOption_D: 'ede',
+            }
+        };
+        this.#queuedInfoPanelCallback = undefined;
+        this.#queuedInfoPanelMessages = [];
+        this.#waitingForPlayerInput = false;
+        this.#selectedAttackIndex = undefined;
         this.#createMainInfoPane();
         this.#createMainBattleMenu();
         this.#createPlayerFightSub();
+        this.#createQuestionSubMenu();
+    }
+
+    /**@type {Number | undefined} */
+    get selectedAttack() {
+        if (this.#activeBattleMenu == ACTIVE_BATTLE_MENU.BATTLE_ATACAR_SELECT) {
+            return this.#selectedAttackIndex;
+        }
+        return undefined;
     }
 
     //Lógica de interfaz
@@ -57,6 +99,7 @@ export class BattleMenu {
         this.#mainBattleMenuContainer.setAlpha(1);
         this.#battleTextLine1.setAlpha(1);
         this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
+        this.#selectedAttackIndex = undefined;
     }
 
     hideMainBattleMenu() {
@@ -74,23 +117,46 @@ export class BattleMenu {
         this.#moveSelectionSubContainer.setAlpha(0);
     }
 
+    showQuestionMenu() {
+        this.#questionContainer.setAlpha(1);
+    }
+
+    hideQuestionMenu() {
+        this.#questionContainer.setAlpha(0);
+    }
+
     /**
      * 
      * @param {import("../../../common/direction.js").Direction|'OK'|'CANCEL'} input 
      */
     handlePlayerInput(input) {
-        console.log(input);
-        if (input === 'CANCEL') {
-            this.hideFightMenu();
-            this.showMainBattleMenu();
+        if (this.#waitingForPlayerInput && (input === 'CANCEL' || input === 'OK')) {
+            this.#updateInfoPaneMessage();
             return;
         }
+
+        if (input === 'CANCEL') {
+            this.#switchToMainBattleMenu();
+            return;
+        }
+
         if (input == 'OK') {
-            this.hideMainBattleMenu();
-            this.showFightMenu();
+            if (this.#activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MAIN) {
+                this.#handlerPlayerMainBattleOption();
+                return;
+            }
+
+            if (this.#activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_ATACAR_SELECT) {
+                this.#handlePlayerAttack();
+            }
+
+            if (this.#activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_QUESTION) {
+                this.#handleQuestionSelect();
+            }
             console.log(this.#selectedBattleMenuOption);
             return;
         }
+
         switch (this.#activeBattleMenu) {
             case ACTIVE_BATTLE_MENU.BATTLE_MAIN:
                 this.#updateSelectedBattleMenuOption(input);
@@ -117,7 +183,7 @@ export class BattleMenu {
 
     //Menu principal
     #createMainBattleMenu() {
-        this.#battleTextLine1 = this.#scene.add.text(8, 8, `¿Qué vas a hacer ${PLAYER_ASSET_KEYS.DEFAULT_PLAYER_NAME}?`, BATTLE_UI_TEXT_STYLE);
+        this.#battleTextLine1 = this.#scene.add.text(8, 8, `¿Qué vas a hacer ${this.#activePlayer.name}?`, BATTLE_UI_TEXT_STYLE);
         this.#mainBattleMenuCursor = this.#scene.add.image(75, 30, UI_ASSET_KEYS.CURSOR).setOrigin(0).setScale(3).setDepth(1);
         this.#mainBattleMenuContainer = this.#scene.add.container(this.#scene.scale.width / 2 - 8, 8, [
             this.#createMainInfoSubPane(),
@@ -134,13 +200,26 @@ export class BattleMenu {
 
     //Submenu LUCHAR
     #createPlayerFightSub() {
-        this.#attackBattleMenuCursor = this.#scene.add.image(ATTACK_MENU_CURSOR_POS.x1, ATTACK_MENU_CURSOR_POS.y, UI_ASSET_KEYS.CURSOR, 0).setOrigin(0).setScale(3)
+        this.#attackBattleMenuCursor = this.#scene.add.image(ATTACK_MENU_CURSOR_POS.x1, ATTACK_MENU_CURSOR_POS.y, UI_ASSET_KEYS.CURSOR, 0).setOrigin(0).setScale(3);
         this.#moveSelectionSubContainer = this.#scene.add.container(8, 8, [
             this.#scene.add.text(100, 60, 'Atacar', BATTLE_UI_TEXT_STYLE),
             this.#scene.add.text(350, 60, 'Protegerse', BATTLE_UI_TEXT_STYLE),
             this.#attackBattleMenuCursor,
         ]);
         this.hideFightMenu();
+    }
+
+    //Submenu Pregunta
+    #createQuestionSubMenu() {
+        this.#questionMenuCursor = this.#scene.add.image(75, 30, UI_ASSET_KEYS.CURSOR).setOrigin(0).setScale(3);
+        this.#questionContainer = this.#scene.add.container(this.#scene.scale.width / 2 - 8, 8, [
+            this.#scene.add.text(100, 30, this.#battleQuestion.questionOption_A, BATTLE_UI_TEXT_STYLE),
+            this.#scene.add.text(400, 30, this.#battleQuestion.questionOption_B, BATTLE_UI_TEXT_STYLE),
+            this.#scene.add.text(100, 100, this.#battleQuestion.questionOption_C, BATTLE_UI_TEXT_STYLE),
+            this.#scene.add.text(400, 100, this.#battleQuestion.questionOption_D, BATTLE_UI_TEXT_STYLE),
+            this.#questionMenuCursor,
+        ]);
+        this.hideQuestionMenu();
     }
 
     #moveAttackMenuCursor() {
@@ -156,7 +235,7 @@ export class BattleMenu {
     /**
      * 
      * @param {import("../../../common/direction.js").Direction} direction 
-     * Método que actualiza la opción seleccionada en el menú de batalla
+     * Método que actualiza la opción seleccionada en el menú de ATACAR
      */
     #updateSelectedAttackOption(direction) {
         if (this.#selectedAttackMenuOption === ATTACK_MENU_OPTIONS.ATACAR) {
@@ -177,7 +256,7 @@ export class BattleMenu {
     #createMainInfoPane() {
         const padding = 4;
         const menuHeight = 170;
-        this.#scene.add.rectangle(padding, padding, this.#scene.scale.width - padding * 2, menuHeight - padding, 0xa1764f).setOrigin(0).setStrokeStyle(8, 0xa18f4f).setAlpha(0.8);
+        this.#scene.add.rectangle(padding, padding, this.#scene.scale.width - padding * 2, menuHeight - padding, 0xa1764f).setOrigin(0).setStrokeStyle(8, 0xa18f4f).setAlpha(1);
     }
     #createMainInfoSubPane() {
         const padding = 8;
@@ -265,4 +344,105 @@ export class BattleMenu {
                 exhaustiveGuard(this.#selectedBattleMenuOption);
         }
     }
+
+    //Método que nos devuelve al menú principal
+    #switchToMainBattleMenu() {
+        this.hideQuestionMenu();
+        this.hideFightMenu();
+        this.showMainBattleMenu();
+    }
+
+    #handlerPlayerMainBattleOption() {
+        this.hideMainBattleMenu();
+
+        if (this.#selectedBattleMenuOption === BATTLE_MENU_OPTIONS.LUCHAR) {
+            this.showFightMenu();
+            return;
+        }
+
+        if (this.#selectedBattleMenuOption == BATTLE_MENU_OPTIONS.ITEM) {
+            this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM_SELECT;
+            this.updateInfoPaneMessagesAndWaitInput(['Tu bolsa está vacía . . .'], () => {
+                this.#switchToMainBattleMenu();
+            })
+            return;
+        }
+
+        if (this.#selectedBattleMenuOption == BATTLE_MENU_OPTIONS.MAGIA) {
+            this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAGIA_SELECT;
+            this.updateInfoPaneMessagesAndWaitInput(['Aún no conoces ningún hechizo'], () => {
+                this.#switchToMainBattleMenu();
+            })
+            return;
+        }
+
+        if (this.#selectedBattleMenuOption == BATTLE_MENU_OPTIONS.HUIR) {
+            this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_HUIR_SELECT;
+            this.updateInfoPaneMessagesAndWaitInput(['¡No conseguiste escapar!'], () => {
+                this.#switchToMainBattleMenu();
+            })
+            return;
+        }
+    }
+
+    /**
+     * 
+     * @param {string[]} messages 
+     * @param {() => void} [callback] 
+     */
+    updateInfoPaneMessagesAndWaitInput(messages, callback) {
+        this.#queuedInfoPanelMessages = messages;
+        this.#queuedInfoPanelCallback = callback;
+        this.#updateInfoPaneMessage();
+    }
+
+    #updateInfoPaneMessage() {
+        this.#waitingForPlayerInput = false;
+        this.#battleTextLine1.setText('').setAlpha(1);
+        //Comprobar si se han terminado los mensajes de la cola y llamada da callback
+        if (this.#queuedInfoPanelMessages.length === 0) {
+            if (this.#queuedInfoPanelCallback) {
+                this.#queuedInfoPanelCallback();
+                this.#queuedInfoPanelCallback = undefined;
+            }
+            return;
+        }
+        //Primer mensaje de la cola, animarlo y eliminarlo
+        let messageToDisplay = this.#queuedInfoPanelMessages.shift();
+        this.#battleTextLine1.setText(messageToDisplay);
+        this.#waitingForPlayerInput = true;
+    }
+
+    #handlePlayerAttack() {
+        let selectedAttackIndex = 0;
+        switch (this.#selectedAttackMenuOption) {
+            case ATTACK_MENU_OPTIONS.ATACAR:
+                selectedAttackIndex = 0;
+                this.#handleQuestionSelect();
+                break;
+            case ATTACK_MENU_OPTIONS.PROTEGERSE:
+                selectedAttackIndex = 1;
+                this.#handleQuestionSelect();
+                break;
+            default:
+                break;
+        }
+        this.#selectedAttackIndex = selectedAttackIndex;
+    }
+
+    #handleQuestionSelect() {
+        //TODO HACER EL FETCH DE LA PREGUNTA Y SUS RESPUESTAS 
+        this.#battleQuestion.questionHeader = 'Pregunta';
+        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta A';
+        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta B';
+        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta C';
+        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta D';
+        this.hideFightMenu();
+        this.showQuestionMenu();
+        this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_QUESTION;
+        this.updateInfoPaneMessagesAndWaitInput([this.#battleQuestion.questionHeader], () => {
+            this.#switchToMainBattleMenu();
+        })
+    }
+
 }

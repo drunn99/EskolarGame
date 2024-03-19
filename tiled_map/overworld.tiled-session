@@ -1,0 +1,87 @@
+{
+    "activeFile": "project/map1.tmx",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "project/Area1.tsx": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx": {
+            "expandedGroupLayers": [
+                15,
+                27,
+                7,
+                12,
+                28
+            ],
+            "scale": 0.5,
+            "selectedLayer": 10,
+            "viewCenter": {
+                "x": 253,
+                "y": 559
+            }
+        },
+        "project/map1.tmx#DEMO houses": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#NPCS": {
+            "scaleInDock": 3
+        },
+        "project/map1.tmx#blue_button12": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#chest_02": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#decor_16x16": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#fences": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#grey_button09": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#objects": {
+            "scaleInDock": 0.75
+        },
+        "project/map1.tmx#plains": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#player": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#red_button09": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#walls": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#water1": {
+            "scaleInDock": 1
+        },
+        "project/map1.tmx#yellow_button08": {
+            "scaleInDock": 1
+        }
+    },
+    "last.exportedFilePath": "E:/Repos/EskolarGame/tiled_map/maps",
+    "last.imagePath": "E:/Repos/EskolarGame/assets/kennys/kenney_ui-pack/PNG",
+    "last.objectTypesPath": "E:/Repos/EskolarGame/tiled_map/custom_types.json",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "openFiles": [
+        "project/map1.tmx"
+    ],
+    "project": "overworld.tiled-project",
+    "recentFiles": [
+        "project/map1.tmx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

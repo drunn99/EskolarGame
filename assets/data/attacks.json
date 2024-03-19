@@ -1,0 +1,22 @@
+[
+    {
+        "id": 0,
+        "name": "Atacar",
+        "animationName": "ATACAR"
+    },
+    {
+        "id" : 1,
+        "name" : "Protegerse",
+        "animationName" : "PROTEGERSE"
+    },
+    {
+        "id" : 2,
+        "name" : "Ataque de baba",
+        "animationName" : "ATAQUE_BABA"
+    },
+    {
+        "id" : 3,
+        "name" : "Ataque de Esqueleto",
+        "animationName" : "ATAQUE_ESQUELETO"
+    }
+]
