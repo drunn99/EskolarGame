@@ -11,12 +11,12 @@
     },
     {
         "id" : 2,
-        "name" : "Ataque de baba",
+        "name" : "Atacar con baba",
         "animationName" : "ATAQUE_BABA"
     },
     {
         "id" : 3,
-        "name" : "Ataque de Esqueleto",
+        "name" : "Atacar con cimitarra",
         "animationName" : "ATAQUE_ESQUELETO"
     }
 ]

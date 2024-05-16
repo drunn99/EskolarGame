@@ -58,7 +58,8 @@ export const WORLD_SOUND = Object.freeze({
 
 export const DATA_ASSET_KEYS = Object.freeze({
     ATTACKS: 'ATTACKS',
-    ANIMATIONS : 'ANIMATIONS'
+    ANIMATIONS : 'ANIMATIONS',
+    QUESTIONS : 'QUESTIONS'
 })
 
 

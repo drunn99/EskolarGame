@@ -34,5 +34,14 @@
             "delay": 0,
             "yoyo": true,
             "assetKey" : "PLAYER"
+    },
+    {
+        "key" : "PLAYER_ATTACK",
+        "frames" : [42,43,44,45],
+        "frameRate": 8,
+        "repeat": -1,
+        "delay" : 0,
+        "yoyo": true,
+        "assetKey": "PLAYER"
     }
 ]
