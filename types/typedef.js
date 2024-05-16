@@ -29,6 +29,7 @@ import Phaser from "../src/lib/phaser.js";
 
 /**
  * @typedef Attack
+ * @type {Object}
  * @property {Number} id
  * @property {String} name
  * @property {String} animation
@@ -46,3 +47,11 @@ import Phaser from "../src/lib/phaser.js";
  * @property {String} assetKey
  */
 
+/**
+ * @typedef Question
+ * @type {Object}
+ * @property {Number} id
+ * @property {String} questionHeader
+ * @property {Number} questionAnswer
+ * @property {String []} questionOptions
+ */

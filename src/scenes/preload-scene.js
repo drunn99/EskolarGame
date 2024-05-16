@@ -46,12 +46,11 @@ export class PreloadScene extends Phaser.Scene {
         this.load.image(UI_ASSET_KEYS.CURSOR, "assets/kennys/kenney_ui-pack-space-expansion/PNG/cursor.png");
 
         //Cargar Mundo
-        this.load.image(WORLD_ASSET_KEYS.WORLD_BACKGROUND, "../../tiled_map/maps/background.png");
-        this.load.image(WORLD_ASSET_KEYS.WORLD_FOREGROUND, "../../tiled_map/maps/foreground.png");
-        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.WORLD_DATA, "../../tiled_map/maps/Overworld.json");
-        this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION, "../../tiled_map/maps/background.png");
+        this.load.image(WORLD_ASSET_KEYS.WORLD_BACKGROUND, "tiled_map/maps/background.png");
+        this.load.image(WORLD_ASSET_KEYS.WORLD_FOREGROUND, "tiled_map/maps/foreground.png");
+        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.WORLD_DATA, "tiled_map/maps/Overworld.json");
+        this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION, "tiled_map/maps/collision.png");
         
-
         //Assets de jugador y npcs para el mundo
         this.load.spritesheet(WORLD_ASSET_KEYS.PLAYER, "assets/characters/player.png", { frameWidth: 48, frameHeight: 48, startFrame: 0 });
         this.load.spritesheet(WORLD_ASSET_KEYS.PLAYER_INV, "assets/characters/playerInverted.png", { frameWidth: 48, frameHeight: 48, startFrame: 0 });
@@ -61,7 +60,9 @@ export class PreloadScene extends Phaser.Scene {
         //Cargar JSONs
         this.load.json(DATA_ASSET_KEYS.ATTACKS, 'assets/data/attacks.json');
         this.load.json(DATA_ASSET_KEYS.ANIMATIONS, 'assets/data/animation.json');
+        this.load.json(DATA_ASSET_KEYS.QUESTIONS, 'assets/data/questions.json');
     }
+    
     create() {
         console.log(`${PreloadScene.name}:create] invoked`);
         this.#createAnim();
@@ -75,7 +76,7 @@ export class PreloadScene extends Phaser.Scene {
                 this.anims.generateFrameNumbers(animation.assetKey, { frames: animation.frames }) :
                 this.anims.generateFrameNumbers(animation.assetKey)
             this.anims.create({
-                key: animation.key,
+                key: animation.key,  
                 frames: frames,
                 frameRate: animation.frameRate,
                 repeat: animation.repeat,
@@ -83,6 +84,5 @@ export class PreloadScene extends Phaser.Scene {
                 yoyo: animation.yoyo
             })
         });
-
     }
 }

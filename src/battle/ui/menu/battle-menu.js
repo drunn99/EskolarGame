@@ -1,5 +1,5 @@
 import Phaser from "../../../lib/phaser.js";
-import { BATTLE_UI_SOUND, PLAYER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assetsKeys/asset-keys.js";
+import { BATTLE_UI_SOUND, DATA_ASSET_KEYS, PLAYER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assetsKeys/asset-keys.js";
 import { DIRECTION } from "../../../common/direction.js";
 import { exhaustiveGuard } from "../../../utils/guard.js";
 import { BATTLE_MENU_OPTIONS, ATTACK_MENU_OPTIONS, ACTIVE_BATTLE_MENU } from "./battle-menu-options.js";
@@ -38,10 +38,8 @@ export class BattleMenu {
     #selectedBattleMenuOption;
     /**@type {import("./battle-menu-options.js").AttackMenuOptions} */
     #selectedAttackMenuOption;
-    /**@type {Object} */
+    /**@type {import("../../../../types/typedef.js").Question} */
     #battleQuestion
-    /**@type {Phaser.Sound.BaseSound} */
-    #moveCursorAudio
     /**@type {import("./battle-menu-options.js").ActiveBattleMenu} */
     #activeBattleMenu
     /**@type {String[]}*/
@@ -66,16 +64,6 @@ export class BattleMenu {
         this.#selectedBattleMenuOption = BATTLE_MENU_OPTIONS.LUCHAR;
         this.#selectedAttackMenuOption = ATTACK_MENU_OPTIONS.ATACAR;
         this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
-        this.#battleQuestion = {
-            questionHeader: '',
-            questionAnswer: '',
-            questionOptions: {
-                questionOption_A: 'eo',
-                questionOption_B: 'ea',
-                questionOption_C: 'ebe',
-                questionOption_D: 'ede',
-            }
-        };
         this.#queuedInfoPanelCallback = undefined;
         this.#queuedInfoPanelMessages = [];
         this.#waitingForPlayerInput = false;
@@ -83,7 +71,6 @@ export class BattleMenu {
         this.#createMainInfoPane();
         this.#createMainBattleMenu();
         this.#createPlayerFightSub();
-        this.#createQuestionSubMenu();
     }
 
     /**@type {Number | undefined} */
@@ -153,7 +140,7 @@ export class BattleMenu {
             if (this.#activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_QUESTION) {
                 this.#handleQuestionSelect();
             }
-            console.log(this.#selectedBattleMenuOption);
+
             return;
         }
 
@@ -193,8 +180,7 @@ export class BattleMenu {
             this.#scene.add.text(400, 100, BATTLE_MENU_OPTIONS.HUIR, BATTLE_UI_TEXT_STYLE),
             this.#mainBattleMenuCursor,
         ]);
-        //Audio
-        this.#moveCursorAudio = this.#scene.sound.add(BATTLE_UI_SOUND.CURSOR);
+
         this.hideMainBattleMenu();
     }
 
@@ -210,13 +196,13 @@ export class BattleMenu {
     }
 
     //Submenu Pregunta
-    #createQuestionSubMenu() {
-        this.#questionMenuCursor = this.#scene.add.image(75, 30, UI_ASSET_KEYS.CURSOR).setOrigin(0).setScale(3);
+    #createQuestionSubMenu(options) {
+        this.#questionMenuCursor = this.#scene.add.image(75, 20, UI_ASSET_KEYS.CURSOR).setOrigin(0).setScale(3);
         this.#questionContainer = this.#scene.add.container(this.#scene.scale.width / 2 - 8, 8, [
-            this.#scene.add.text(100, 30, this.#battleQuestion.questionOption_A, BATTLE_UI_TEXT_STYLE),
-            this.#scene.add.text(400, 30, this.#battleQuestion.questionOption_B, BATTLE_UI_TEXT_STYLE),
-            this.#scene.add.text(100, 100, this.#battleQuestion.questionOption_C, BATTLE_UI_TEXT_STYLE),
-            this.#scene.add.text(400, 100, this.#battleQuestion.questionOption_D, BATTLE_UI_TEXT_STYLE),
+            this.#scene.add.text(100, 30, options[0], BATTLE_UI_TEXT_STYLE).setFontSize(18),
+            this.#scene.add.text(400, 30, options[1], BATTLE_UI_TEXT_STYLE).setFontSize(18),
+            this.#scene.add.text(100, 100, options[2], BATTLE_UI_TEXT_STYLE).setFontSize(18),
+            this.#scene.add.text(400, 100, options[3], BATTLE_UI_TEXT_STYLE).setFontSize(18),
             this.#questionMenuCursor,
         ]);
         this.hideQuestionMenu();
@@ -326,7 +312,6 @@ export class BattleMenu {
 
     //Método que actualiza la posición del cursor de la interfaz de combate
     #moveMainBattleMenuCursor() {
-        this.#moveCursorAudio.play();
         switch (this.#selectedBattleMenuOption) {
             case BATTLE_MENU_OPTIONS.LUCHAR:
                 this.#mainBattleMenuCursor.setPosition(BATTLE_MENU_CURSOR_POS.x, BATTLE_MENU_CURSOR_POS.y);
@@ -431,18 +416,24 @@ export class BattleMenu {
     }
 
     #handleQuestionSelect() {
-        //TODO HACER EL FETCH DE LA PREGUNTA Y SUS RESPUESTAS 
-        this.#battleQuestion.questionHeader = 'Pregunta';
-        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta A';
-        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta B';
-        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta C';
-        this.#battleQuestion.questionOptions.questionOption_A = 'Respuesta D';
+        this.#fetchNewQuestion();
+        this.#createQuestionSubMenu(this.#battleQuestion.questionOptions);
         this.hideFightMenu();
         this.showQuestionMenu();
         this.#activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_QUESTION;
         this.updateInfoPaneMessagesAndWaitInput([this.#battleQuestion.questionHeader], () => {
             this.#switchToMainBattleMenu();
-        })
+        });
+    }
+
+    #fetchNewQuestion() {
+        /**@type {import("../../../../types/typedef.js").Question[]} */
+        const data = this.#scene.cache.json.get(DATA_ASSET_KEYS.QUESTIONS);
+        let rndIndex = Math.floor(Math.random() * 3);
+        const newQuestion = data.find((question) => question.id = rndIndex);
+        if(newQuestion != undefined){
+            this.#battleQuestion = newQuestion;
+        }
     }
 
 }

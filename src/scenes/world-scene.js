@@ -47,12 +47,23 @@ export class WorldScene extends Phaser.Scene {
             direction: DIRECTION.DOWN
         });
 
-
         //Camara del jugador
         this.cameras.main.startFollow(this.#player.sprite);
         this.cameras.main.setZoom(2);
         this.cameras.main.fadeIn(1000, 0, 0, 0);
-
+        /*
+        const map = this.make.tilemap({ key: WORLD_ASSET_KEYS.WORLD_DATA });
+        const collisionTiles = map.addTilesetImage('collision', WORLD_ASSET_KEYS.WORLD_COLLISION);
+        if (!collisionTiles) {
+            console.log('Collision layer error from tiled');
+            return;
+        }
+        const collisionLayer = map.createLayer('Collision', collisionTiles, 0, 0);
+        if (!collisionLayer) {
+            console.log('Collision layer error from tiled');
+            return;
+        }
+        */
         //Elementos foreground
         this.add.image(0, 0, WORLD_ASSET_KEYS.WORLD_FOREGROUND, 0).setOrigin(0).setDepth(2);
 

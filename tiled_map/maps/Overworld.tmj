@@ -1,4 +1,11 @@
-{ "compressionlevel": -1,
+{ "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json"
+        }
+    },
  "height":64,
  "infinite":true,
  "layers":[
@@ -2537,7 +2544,7 @@
          "startx":16,
          "starty":0,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":16,
          "x":0,
          "y":0

@@ -24,11 +24,20 @@ export class BattleScene extends Phaser.Scene {
     #activeEnemy;
     /**@type {PlayerBattleChar} */
     #activePlayer;
+    /**@type {Number} */
+    #activePlayerAttack;
+    /**@type {Phaser.Sound.BaseSound} */
+    #moveCursorAudio
+
 
     constructor() {
         super({
             key: SCENE_KEYS.BATTLE_SCENE,
         });
+    }
+
+    init() {
+        this.#activePlayerAttack = -1;
     }
 
     preload() {
@@ -50,6 +59,9 @@ export class BattleScene extends Phaser.Scene {
             volume: 0.3,
         })
 
+        //Audio
+        this.#moveCursorAudio = this.sound.add(BATTLE_UI_SOUND.CURSOR);
+
         //Jugador y Enemigo
         this.#activePlayer = new PlayerBattleChar({
             scene: this,
@@ -60,7 +72,7 @@ export class BattleScene extends Phaser.Scene {
                 assetFrame: 0,
                 currentHp: 100,
                 maxHp: 100,
-                attackOptions: [1, 2],
+                attackOptions: [0, 1],
                 baseAttack: 20,
             }
         })
@@ -74,7 +86,7 @@ export class BattleScene extends Phaser.Scene {
                 level: 5,
                 currentHp: 100,
                 maxHp: 100,
-                attackOptions: [3],
+                attackOptions: [2],
                 baseAttack: 5,
             }
         });
@@ -104,12 +116,13 @@ export class BattleScene extends Phaser.Scene {
             //Comprobar si se ha seleccionado LUCHAR -> ATACAR
             if (this.#battleMenu.selectedAttack === undefined) {
                 return;
-            } else {
-                this.#battleMenu.hideFightMenu();
-                /*
-                this.#handleBattleSequence();
-                */
             }
+            this.#activePlayerAttack = this.#battleMenu.selectedAttack;
+            if (!this.#activePlayer._charAttacks[this.#activePlayerAttack]) {
+                return;
+            }
+            this.#battleMenu.hideFightMenu();
+            this.#handleBattleSequence();
         }
 
         if (wasShiftPressed) {
@@ -118,6 +131,7 @@ export class BattleScene extends Phaser.Scene {
         }
         const selectedDirection = this.#controls.getDirectionKeyPressedOnce();
         if (selectedDirection !== DIRECTION.NONE) {
+            this.#moveCursorAudio.play();
             this.#battleMenu.handlePlayerInput(selectedDirection);
         }
     }
@@ -130,7 +144,21 @@ export class BattleScene extends Phaser.Scene {
     }
 
     #playerAttack() {
-        this.#battleMenu.updateInfoPaneMessagesAndWaitInput([])
+        this.#battleMenu.updateInfoPaneMessagesAndWaitInput([`${this.#activePlayer.name} decide ${this.#activePlayer._charAttacks[0].name}`],
+            () => this.time.delayedCall(500, () => {
+                this.#activeEnemy.takeDmg(20, () => {
+                    this.#enemyAttack();
+                })
+            }));
+    }
+
+    #enemyAttack() {
+        this.#battleMenu.updateInfoPaneMessagesAndWaitInput([`${this.#activeEnemy.name} decide ${this.#activeEnemy._charAttacks[0].name}`],
+            () => this.time.delayedCall(500, () => {
+                this.#activePlayer.takeDmg(20, () => {
+                    this.#battleMenu.showQuestionMenu();
+                })
+            }));
     }
 
 }
