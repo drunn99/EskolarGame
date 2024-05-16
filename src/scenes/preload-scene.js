@@ -65,7 +65,7 @@ export class PreloadScene extends Phaser.Scene {
     create() {
         console.log(`${PreloadScene.name}:create] invoked`);
         this.#createAnim();
-        this.scene.start(SCENE_KEYS.WORLD_SCENE);
+        this.scene.start(SCENE_KEYS.BATTLE_SCENE); //SCENE_KEYS.WORLD_SCENE PARA ESCENA DE MUNDO / SCENE_KEYS.BATTLE_SCENE PARA ESCENA DE BATALLA
     }
 
     #createAnim() {
